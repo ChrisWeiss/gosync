@@ -1,49 +1,52 @@
-S3CMD
+GOSync
 ============
-S3cmd in a Docker container.
-Use this tool for moving files between the machine and S3.
+[gosync](https://github.com/weavenet/gosync) in a container.
+Use this tool for moving files between the machines and S3 buckets.
 
 # Usage Instruction
-### Environment Variables you should override
+### Environment Variables you should inject
 ```
 AWS_KEY=<YOUR AWS KEY>
 AWS_SECRET=<YOUR AWS SECRET>
-BUCKET=s3://url.to.s3.bucket/folder/
-LOCAL_FILE=/path/to/files/or/folder/
 ```
-## Copy from machine to S3:
-* Change `LOCAL_FILE` to file/folder you want to upload to S3.
+
+## Syncing from local directory to S3
 ```
     docker run \
     --env aws_key=${AWS_KEY} \
     --env aws_secret=${AWS_SECRET} \
-    --env cmd=sync-local-to-s3 \
-    --env DEST_S3=${BUCKET}  \
-    -v ${LOCAL_FILE}:/opt/src \
-    anki/s3cmd
+    -v ${LOCAL_FILE}:/files \
+    anki/gosync
+    gosync /files s3://bucket/files
 ```
 
-## Copy from S3 to machine:
-* Change `LOCAL_FILE` to the file/folder where you want to download the files from S3 to the machine.
+## Syncing from S3 to local directory
 ```
     docker run \
     --env aws_key=${AWS_KEY} \
     --env aws_secret=${AWS_SECRET} \
-    --env cmd=sync-s3-to-local \
-    --env SRC_S3=${BUCKET} \
-    -v ${LOCAL_FILE}:/opt/dest \
-    anki/s3cmd
+    -v ${LOCAL_FILE}:/files \
+    anki/gosync
+    gosync s3://bucket/files /files
 ```
 
-## Run interactively with s3cmd
-* Execute the `main.sh` script to setup the s3cmd config file once you're inside th contaner's shell. Then, execute the `s3cmd commands you'd like.`
+## Syncing from S3 to S3
 ```
-    $ docker run -it \
-      --env aws_key=${AWS_KEY} \
-      --env aws_secret=${AWS_SECRET} \
-      --env cmd=interactive \
-      -v /:/opt/dest \
-      anki/s3cmd /bin/sh
-    $ /opt/main.sh
-    $ s3cmd ls /
+    docker run \
+    --env aws_key=${AWS_KEY} \
+    --env aws_secret=${AWS_SECRET} \
+    -v ${LOCAL_FILE}:/files \
+    anki/gosync
+    gosync s3://source_bucket s3://target_bucket
 ```
+
+## Syncing from S3 to another directory in S3
+```
+    docker run \
+    --env aws_key=${AWS_KEY} \
+    --env aws_secret=${AWS_SECRET} \
+    -v ${LOCAL_FILE}:/files \
+    anki/gosync
+    gosync s3://source_bucket/dir s3://target_bucket/another_dir
+```
+
